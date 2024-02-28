@@ -7,6 +7,9 @@ def clamp(n, smallest, largest):
 def distance_to_dest(current_x, current_y, dests):
     return [abs(current_x - dest.position.x) + abs(current_y - dest.position.y) for dest in dests]
 
+def distance_to_obj(pisitonA, positionB):
+    return abs(pisitonA.x - positionB.x) + abs(pisitonA.y - positionB.y)
+
 def best_and_closest(gameObj, current_position, props, sekon):
     bestPoint = 0
     minToBase = 9999
@@ -50,11 +53,27 @@ def best_and_closest(gameObj, current_position, props, sekon):
 
     return closest
     
+# def get_direction(current_x, current_y, dest_x, dest_y):
+#     delta_x = clamp(dest_x - current_x, -1, 1)
+#     delta_y = clamp(dest_y - current_y, -1, 1)
+#     if delta_x != 0:
+#         delta_y = 0
+#     return (delta_x, delta_y)
+
 def get_direction(current_x, current_y, dest_x, dest_y):
-    delta_x = clamp(dest_x - current_x, -1, 1)
-    delta_y = clamp(dest_y - current_y, -1, 1)
-    if delta_x != 0:
+    delta_x = dest_x - current_x
+    delta_y = dest_y - current_y
+
+    if delta_x == 0 and delta_y == 0:
+        return (0, 0)  # Already at the destination
+
+    if abs(delta_x) > abs(delta_y):
+        delta_x = clamp(delta_x, -1, 1)
         delta_y = 0
+    else:
+        delta_x = 0
+        delta_y = clamp(delta_y, -1, 1)
+
     return (delta_x, delta_y)
 
 def position_equals(a: Position, b: Position):
