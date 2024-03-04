@@ -6,9 +6,7 @@ from game.api import Api
 from game.board_handler import BoardHandler
 from game.bot_handler import BotHandler
 from game.logic.random import RandomLogic
-from game.logic.steve3 import DiamondOnly3
-from game.logic.steve import DiamondOnly2
-from game.logic.steve1 import DiamondOnly1
+from game.logic.steve import DiamondOnly
 from game.util import *
 from game.logic.base import BaseLogic
 
@@ -17,9 +15,7 @@ BASE_URL = "http://localhost:3000/api"
 DEFAULT_BOARD_ID = 1
 CONTROLLERS = {
     "Random": RandomLogic,
-    "Steve1": DiamondOnly1,
-    "Steve2": DiamondOnly2,
-    "Steve3": DiamondOnly3,
+    "Steve": DiamondOnly,
 }
 
 ###############################################################################

@@ -51,10 +51,10 @@ def best_and_closest(diamonds_only, gameObj, current_position, props):
         current_distance = 0
         dimon_to_base = 0
 
-        min_x = clamp(obj.position.x - 3, 0, 14)
-        max_x = clamp(obj.position.x + 3, 0, 14)
-        min_y = clamp(obj.position.y - 3, 0, 14)
-        max_y = clamp(obj.position.y + 3, 0, 14)
+        min_x = clamp(obj.position.x - 2, 0, 14)
+        max_x = clamp(obj.position.x + 2, 0, 14)
+        min_y = clamp(obj.position.y - 2, 0, 14)
+        max_y = clamp(obj.position.y + 2, 0, 14)
 
         current_point += obj.properties.points if obj.type == "DiamondGameObject" else 0
         current_distance += closest_distance
@@ -100,7 +100,7 @@ def diamond_near_teleport(teleporters, diamondsOnly):
 
     return best_tele_ID, most_dimon
 
-class DiamondOnly2(BaseLogic):
+class DiamondOnly(BaseLogic):
     def __init__(self):
         self.goal_position: Optional[Position] = None
         self.teleport = False
@@ -126,13 +126,6 @@ class DiamondOnly2(BaseLogic):
 
         # Get all other bots
         other_bots = [bot for bot in board.bots if bot.id != id_bot]
-   
-        for bot in other_bots:
-            left = Position(bot.position.y, bot.position.x - 1)
-            right = Position(bot.position.y, bot.position.x + 1)
-            up = Position(bot.position.y - 1, bot.position.x)
-            down = Position(bot.position.y + 1, bot.position.x)
-            self.avoid_positions.extend([left, right, up, down, bot.position])
 
         # for obj in self.avoid_positions:
         #     print(obj)
@@ -143,7 +136,7 @@ class DiamondOnly2(BaseLogic):
         # Get time left in seconds
         sekon = math.floor(board_bot.properties.milliseconds_left / 1000)
 
-        if props.diamonds == 5 or distance_to_base == sekon and not  position_equals(current_position, board_bot.properties.base):
+        if props.diamonds == 5 or distance_to_base == sekon and not  position_equals(current_position, props.base):
             # Move to base:
             base = board_bot.properties.base
 
@@ -153,7 +146,7 @@ class DiamondOnly2(BaseLogic):
             bot_tele = distance_to_goal(current_position, sorted_teleporters[0].position)
             tele_base = distance_to_goal(sorted_teleporters[1].position, base)
 
-            if position_equals(current_position, sorted_teleporters[0].position):
+            if position_equals(current_position, sorted_teleporters[0].position) or position_equals(current_position, props.base):
                 self.teleport = True
             elif distance_to_base > bot_tele + tele_base:
                 self.goal_position = sorted_teleporters[0].position
@@ -163,23 +156,32 @@ class DiamondOnly2(BaseLogic):
             # Get all game objects except base and self
             gameObj_normal = [obj for obj in board.game_objects if obj.type != "BaseGameObject" and obj.id != id_bot]
             
+            for bot in other_bots:
+                min_x = clamp(bot.position.x - 2, 0, 14)
+                max_x = clamp(bot.position.x + 2, 0, 14)
+                min_y = clamp(bot.position.y - 2, 0, 14)
+                max_y = clamp(bot.position.y + 2, 0, 14)
+                for obj in gameObj_normal:
+                    if obj.position.x >= min_x and obj.position.x <= max_x and obj.position.y >= min_y and obj.position.y <= max_y:
+                        enemy_to_dimon = distance_to_goal(bot.position, obj.position)
+                        bot_to_dimon = distance_to_goal(current_position, obj.position)   
+                        if bot_to_dimon > enemy_to_dimon:
+                            gameObj_normal.remove(obj)                     
+
             if props.score < 7:
                 gameObj_normal = [obj for obj in gameObj_normal if obj.type != "DiamondButtonGameObject"]
 
             # Get diamonds that will accumulate to 5 diamonds
-            gameObj_perfectScoreDimons = [obj for obj in gameObj_normal if not (obj.type == "DiamondGameObject" and obj.properties.points + props.diamonds > 5)]
+            gameObj = [obj for obj in gameObj_normal if not (obj.type == "DiamondGameObject" and obj.properties.points + props.diamonds > 5)]
 
-            # Diamond only game objects
-            diamonds_only = [obj for obj in gameObj_perfectScoreDimons if obj.type == "DiamondGameObject"]
-
-            diamonds_near_base, pointNearBase = dimons_near_base(gameObj_perfectScoreDimons, props)
-
+            diamonds_near_base, pointNearBase = dimons_near_base(gameObj, props)
+            diamonds_only = [obj for obj in gameObj if obj.type == "DiamondGameObject"]
             print(f"points near base: {pointNearBase}")
             print(len(diamonds_near_base))
             if pointNearBase + props.diamonds >= 5 and len(diamonds_near_base) != 1:
-                diamonds_only = [dimon for dimon in diamonds_near_base if not (dimon.type == "DiamondGameObject" and dimon.properties.points + props.diamonds > 5)]
+                gameObj = [dimon for dimon in diamonds_near_base if not (dimon.type == "DiamondGameObject" and dimon.properties.points + props.diamonds > 5)]
 
-            ベスト = best_and_closest(gameObj_perfectScoreDimons, diamonds_only, current_position, props)
+            ベスト = best_and_closest(diamonds_only, gameObj, current_position, props)
 
             if ベスト.type == "TeleportGameObject":
                 
@@ -189,8 +191,8 @@ class DiamondOnly2(BaseLogic):
                     self.teleport = True
                 else:
                     self.avoid_positions.append(ベスト.position)
-                    gameObj = [obj for obj in gameObj_perfectScoreDimons if obj.type != "TeleportGameObject"]
-                    ベスト = best_and_closest(gameObj_perfectScoreDimons, gameObj, current_position, props)
+                    gameObj = [obj for obj in gameObj if obj.type != "TeleportGameObject"]
+                    ベスト = best_and_closest(diamonds_only, gameObj, current_position, props)
             
             self.goal_position = ベスト.position
                 
@@ -218,18 +220,19 @@ class DiamondOnly2(BaseLogic):
             #     print(move)
             # print("f")
             # Filter out moves that would lead to an avoided position
-            valid_moves = [(dx, dy) for dx, dy in possible_moves if Position(current_position.y + dy, current_position.x + dx) not in self.avoid_positions]
+            valid_moves = [(dx, dy) for dx, dy in possible_moves if Position(current_position.y + dy, current_position.x + dx) not in self.avoid_positions ]
+            
+            valid_moves = [(dx, dy) for dx, dy in valid_moves if current_position.y + dy >= 0 and current_position.y + dy <= 14 and current_position.x + dx >= 0 and current_position.x + dx <= 14]
             # print("valid moves")
             # for move in valid_moves:
             #     print(move)
             # print("f")
             if len(valid_moves) > 1:
                 valid_moves = [(dx, dy) for dx, dy in valid_moves if not (dx == -delta_x and dy == -delta_y)]
-                # Calculate the distance to the goal for each valid move
+                # Calculate the distance for each valid move to the goal
                 distances = [abs(self.goal_position.x - (current_position.x + dx)) + abs(self.goal_position.y - (current_position.y + dy)) for dx, dy in valid_moves]
-                # Find the move with the minimum distance to the goal
+                # Get the index of the move with the minimum distance
                 min_distance_index = distances.index(min(distances))
-                # Choose the move with the minimum distance to the goal
                 delta_x, delta_y = valid_moves[min_distance_index]
             else:
                 delta_x, delta_y = valid_moves[0]

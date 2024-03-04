@@ -78,10 +78,6 @@ class RandomLogic(BaseLogic):
         print(f"Distance to base1: {distance_to_base}")
         print(f"seconds1: {sekon}")
         ベスト = best_and_closest(gameObj, current_position, props, sekon)
-        distance_to_base = abs(current_position.x - props.base.x) + abs(current_position.y - props.base.y)
-        sekon = math.floor(board_bot.properties.milliseconds_left / 1000)
-        print(f"Distance to base2: {distance_to_base}")
-        print(f"seconds2: {sekon}")
         
         if props.diamonds == 5 or distance_to_base == sekon and not position_equals(current_position, board_bot.properties.base):
             # Move to base:
