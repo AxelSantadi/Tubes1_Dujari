@@ -7,7 +7,7 @@ from game.board_handler import BoardHandler
 from game.bot_handler import BotHandler
 from game.logic.random import RandomLogic
 from game.logic.steve3 import DiamondOnly3
-from game.logic.steve2 import DiamondOnly2
+from game.logic.steve import DiamondOnly2
 from game.logic.steve1 import DiamondOnly1
 from game.util import *
 from game.logic.base import BaseLogic
