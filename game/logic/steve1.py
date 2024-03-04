@@ -61,10 +61,8 @@ def best_and_closest(diamonds_only, gameObj, current_position, props):
             if current_dimon_to_base > dimon_to_base:
                 dimon_to_base = current_dimon_to_base
 
-        if dimon_to_base < minToBase and bestPoint < current_point and current_distance < min_distance:
-            minToBase = dimon_to_base
+        if  current_distance < min_distance:
             min_distance = current_distance
-            bestPoint = current_point
             closest = obj
 
         if position_equals(current_position, closest.position):
@@ -94,7 +92,7 @@ def diamond_near_teleport(teleporters, diamondsOnly):
 
     return best_tele_ID, most_dimon
     
-class DiamondOnly(BaseLogic):
+class DiamondOnly1(BaseLogic):
     def __init__(self):
         self.goal_position: Optional[Position] = None
         self.teleport = False
@@ -147,7 +145,7 @@ class DiamondOnly(BaseLogic):
             if len(diamonds_near_base) > len(diamonds_only):
                 diamonds_only = diamonds_near_base
 
-            ベスト = best_and_closest(diamonds_only, diamonds_only, current_position, props)
+            ベスト = best_and_closest(diamonds_only, gameObj_normal, current_position, props)
 
             if ベスト.type == "TeleportGameObject":
                 
