@@ -1,7 +1,7 @@
 @echo off
-start cmd /c "python main.py --logic Random --email=test@email.com --name=stima --password=123456 --team etimo"
-start cmd /c "python main.py --logic Steve --email=test1@email.com --name=stima1 --password=123456 --team etimo"
-start cmd /c "python main.py --logic Asep --email=test2@email.com --name=stima2 --password=123456 --team etimo"
-@rem start cmd /c "python main.py --logic DiamondOnly --email=test3@email.com --name=stima3 --password=123456 --team etimo"
-@REM start cmd /c "python main.py --logic Random --email=test2@email.com --name=stima2 --password=123456 --team etimo"
-@REM start cmd /c "python main.py --logic Random --email=test3@email.com --name=stima3 --password=123456 --team etimo"
+start cmd /c "python main.py --logic Dimon --email=dimon1@email.com --name=daim --password=123456 --team etimo"
+start cmd /c "python main.py --logic Steve --email=steve3@email.com --name=stip --password=123456 --team etimo"
+start cmd /c "python main.py --logic Asep --email=asep2@email.com --name=sep --password=123456 --team etimo"
+@REM start cmd /c "python main.py --logic Tesla --email=tesla4@email.com --name=tes --password=123456 --team etimo"
+@REM start cmd /c "python main.py --logic Anita --email=anita5@email.com --name=nita --password=123456 --team etimo"
+

@@ -57,40 +57,33 @@ def best_and_closest(gameObj, current_position, props, sekon):
 class diamondfocused(BaseLogic):
     def __init__(self):
         self.goal_position: Optional[Position] = None
-        self.teleport = False
-        self.step = 0
+        self.avoid_positions = []
     
     def next_move(self, board_bot: GameObject, board: Board):
         props = board_bot.properties
         current_position = board_bot.position
-
-        gameObj = [obj for obj in board.game_objects if obj.type not in ["BotGameObject", "BaseGameObject"]]
         
-        print(f"teleport: {self.teleport}")
-
-        if self.teleport: 
-            gameObj = [obj for obj in gameObj if obj.type != "TeleportGameObject"]
-
-        gameObj = [obj for obj in gameObj if not (obj.type == "DiamondGameObject" and obj.properties.points + props.diamonds > 5)]
-        
+        # Menyimpan posisi telporter dalam self.avoid_positions
+        teleporter = [obj.position for obj in board.game_objects if obj.type == "TeleportGameObject"]
+        self.avoid_positions.append(teleporter)
+        # Menghitung jarak dari bot ke base dan waktu tersisa
         distance_to_base = abs(current_position.x - props.base.x) + abs(current_position.y - props.base.y)
         sekon = math.floor(board_bot.properties.milliseconds_left / 1000)
-        print(f"Distance to base1: {distance_to_base}")
-        print(f"seconds1: {sekon}")
-        ベスト = best_and_closest(gameObj, current_position, props, sekon)
-        distance_to_base = abs(current_position.x - props.base.x) + abs(current_position.y - props.base.y)
-        sekon = math.floor(board_bot.properties.milliseconds_left / 1000)
-        print(f"Distance to base2: {distance_to_base}")
-        print(f"seconds2: {sekon}")
         
-        if props.diamonds == 5 or distance_to_base == sekon and not position_equals(current_position, board_bot.properties.base):
+        # Jika bot memiliki lebih dari 3 diamond atau jarak ke base sama dengan waktu tersisa, maka bot akan menuju ke base
+        if props.diamonds > 3 or distance_to_base == sekon and not position_equals(current_position, board_bot.properties.base):
             # Move to base:
             base = board_bot.properties.base
             self.goal_position = base
+            self.teleport = False
         else:
-            if ベスト.type == "TeleportGameObject":
-                self.teleport = True
-            
+            # Menyimpan semua objek yang bukan merupakan BaseGameObject, BotGameObject, dan TeleportGameObject
+            gameObj = [obj for obj in board.game_objects if obj.type not in ["BotGameObject", "BaseGameObject", "TeleportGameObject"]]
+            # Menghapus diamond jika jumlah diamond lebih dari 5
+            gameObj = [obj for obj in gameObj if not (obj.type == "DiamondGameObject" and obj.properties.points + props.diamonds > 5)]
+            # Mendapatkan objek terdekat
+            ベスト = best_and_closest(gameObj, current_position, props, sekon)
+            print(f"object type: {ベスト.type}")
             self.goal_position = ベスト.position
                 
         delta_x, delta_y = get_direction(
@@ -99,17 +92,23 @@ class diamondfocused(BaseLogic):
             self.goal_position.x,
             self.goal_position.y,
         )
+        # Jika posisi yang akan dituju merupakan posisi yang harus dihindari, maka bot akan memilih posisi lain
+        tempPosition = Position(current_position.y + delta_y, current_position.x + delta_x)
+
+        if tempPosition in self.avoid_positions:
+            # Mendapatkan semua kemungkinan gerakan
+            possible_moves = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1] if abs(dx) != abs(dy)]
+            # Memilih gerakan yang tidak ada pada self.avoid_positions
+            valid_moves = [(dx, dy) for dx, dy in possible_moves if Position(current_position.y + dy, current_position.x + dx) not in self.avoid_positions ]
+            # Memilih gerakan yang berada pada game board
+            valid_moves = [(dx, dy) for dx, dy in valid_moves if current_position.y + dy >= 0 and current_position.y + dy <= 14 and current_position.x + dx >= 0 and current_position.x + dx <= 14]
+            # Jika terdapat lebih dari 1 gerakan yang valid, maka bot akan memilih gerakan yang paling dekat dengan goal_position
+            if len(valid_moves) > 1:
+                valid_moves = [(dx, dy) for dx, dy in valid_moves if not (dx == -delta_x and dy == -delta_y)]
+                distances = [abs(self.goal_position.x - (current_position.x + dx)) + abs(self.goal_position.y - (current_position.y + dy)) for dx, dy in valid_moves]
+                min_distance_index = distances.index(min(distances))
+                delta_x, delta_y = valid_moves[min_distance_index]
+            else:
+                delta_x, delta_y = valid_moves[0]
         
-        # print(f"Current position: {current_position.x}, {current_position.y}")
-        # # Print diamond positions
-        # print(f"Diamonds: {len(board.diamonds)}")
-        # for diamond in board.diamonds:
-        #     print(f"Diamond position: {diamond.position.x}, {diamond.position.y}")
-        #     print(f"Diamond points: {diamond.properties.points}")
-
-        # for obj in board.game_objects:
-        #     print(f"Object points: {obj.properties.points}")
-
-
-
         return delta_x, delta_y
