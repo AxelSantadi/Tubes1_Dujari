@@ -126,14 +126,16 @@ class DiamondOnly(BaseLogic):
 
         # Mengukur jarak antara posisi saat ini dengan posisi base dan waktu tersisa
         distance_to_base = distance_to_goal(current_position, props.base)
-        sekon = math.floor(board_bot.properties.milliseconds_left / 1000) 
+        sekon = math.floor(props.milliseconds_left / 1000) 
+        print("Sekon: ", sekon)
+        print("Distance to base: ", distance_to_base)
 
         # Jika bot memiliki lebih dari 3 diamond atau jarak ke base sama dengan waktu tersisa, maka bot akan menuju ke base
         if distance_to_base == sekon and not position_equals(current_position, props.base):
             base = props.base
             self.goal_position = base
-
-        elif props.diamonds > 2 or distance_to_base == sekon and not position_equals(current_position, props.base):
+            print("go BACKKK")
+        elif props.diamonds > 3:
             base = props.base
             self.goal_position = base
             

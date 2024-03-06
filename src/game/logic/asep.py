@@ -81,12 +81,15 @@ class mixbanyakattack(BaseLogic):
 
         # Mengukur jarak antara posisi saat ini dengan posisi base dan waktu tersisa
         distance_to_base = abs(current_position.x - props.base.x) + abs(current_position.y - props.base.y)
-        sekon = math.floor(board_bot.properties.milliseconds_left / 1000)
-
+        sekon = math.floor(props.milliseconds_left / 1000)
+        print("Sekon: ", sekon)
+        print("Distance to base: ", distance_to_base)
         # Jika bot memiliki lebih dari 2 diamond atau jarak antara posisi saat ini dengan base sama dengan waktu tersisa
         if distance_to_base == sekon and not position_equals(current_position, props.base):
             base = props.base
             self.goal_position = base
+            print("go BACKKK")
+
         elif props.diamonds > 2:
             base = props.base
             self.goal_position = base
