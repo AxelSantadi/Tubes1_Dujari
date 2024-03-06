@@ -66,16 +66,20 @@ class diamondfocused(BaseLogic):
         # Menyimpan posisi telporter dalam self.avoid_positions
         teleporter = [obj.position for obj in board.game_objects if obj.type == "TeleportGameObject"]
         self.avoid_positions.append(teleporter)
+
         # Menghitung jarak dari bot ke base dan waktu tersisa
         distance_to_base = abs(current_position.x - props.base.x) + abs(current_position.y - props.base.y)
         sekon = math.floor(board_bot.properties.milliseconds_left / 1000)
         
         # Jika bot memiliki lebih dari 3 diamond atau jarak ke base sama dengan waktu tersisa, maka bot akan menuju ke base
-        if props.diamonds > 3 or distance_to_base == sekon and not position_equals(current_position, board_bot.properties.base):
+        if distance_to_base == sekon and not position_equals(current_position, board_bot.properties.base):
+            base = board_bot.properties.base
+            self.goal_position = base
+
+        elif props.diamonds > 2 or distance_to_base == sekon and not position_equals(current_position, board_bot.properties.base):
             # Move to base:
             base = board_bot.properties.base
             self.goal_position = base
-            self.teleport = False
         else:
             # Menyimpan semua objek yang bukan merupakan BaseGameObject, BotGameObject, dan TeleportGameObject
             gameObj = [obj for obj in board.game_objects if obj.type not in ["BotGameObject", "BaseGameObject", "TeleportGameObject"]]

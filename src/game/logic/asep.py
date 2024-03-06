@@ -84,26 +84,32 @@ class mixbanyakattack(BaseLogic):
         sekon = math.floor(board_bot.properties.milliseconds_left / 1000)
 
         # Jika bot memiliki lebih dari 2 diamond atau jarak antara posisi saat ini dengan base sama dengan waktu tersisa
-        if props.diamonds > 2 or distance_to_base == sekon and not position_equals(current_position, props.base):
+        if distance_to_base == sekon and not position_equals(current_position, props.base):
+            base = props.base
+            self.goal_position = base
+        elif props.diamonds > 2:
             base = props.base
             self.goal_position = base
         else:
             # Mengambil semua objek yang bukan merupakan BaseGameObject, bot dengan id bot_id, dan TeleportGameObject
-            gameObj = [obj for obj in board.game_objects if obj.id != bot_id and obj.type != "BaseGameObject" and obj.type != "TeleportGameObject"]
+            gameObj = [obj for obj in board.game_objects if obj.type not in ["BotGameObject", "BaseGameObject", "TeleportGameObject"]]
 
             # Mendapatkan diamond dengan poin yang pas
             gameObj = [obj for obj in gameObj if not (obj.type == "DiamondGameObject" and obj.properties.points + props.diamonds > 5)]
 
             ベスト = best_and_closest(gameObj, current_position, props, sekon) # Mendapatkan objek terdekat
-            
-            self.goal_position = ベスト.position
 
-            # Jika terdapat bot lain yang memiliki diamond lebih banyak dan bot memiliki score lebih dari 7
+            self.goal_position = ベスト.position
+            
+            # Penyerangan bot musuh dengan ketentuan tertentu akan mengabaikan jika terdapat diamond yang lebih dekat
+            obj_distance = distance_to_goal(current_position, ベスト.position)
+
             enemy_bots = [bot for bot in board.bots if bot.id != bot_id]
-            if enemy_bots and props.diamonds < 4:
+            if enemy_bots and props.diamonds < 4 and props.score > 7:
                 enemy_bots.sort(key=lambda bot: bot.properties.diamonds, reverse=True)
+                bot_distance = distance_to_goal(current_position, enemy_bots[0].position)
                 enemy_with_most_diamonds = enemy_bots[0]
-                if enemy_with_most_diamonds.properties.diamonds > 2 and props.score > 7:
+                if enemy_with_most_diamonds.properties.diamonds > 2 and bot_distance < obj_distance:
                     self.goal_position = enemy_with_most_diamonds.position
 
                 
@@ -114,17 +120,17 @@ class mixbanyakattack(BaseLogic):
             self.goal_position.y,
         )
 
-        # Jika posisi yang akan dituju merupakan posisi yang harus dihindari
+        # Jika posisi yang akan dituju merupakan posisi yang harus dihindari, maka bot akan memilih posisi lain
         tempPosition = Position(current_position.y + delta_y, current_position.x + delta_x)
 
         if tempPosition in self.avoid_positions:
-            print("Avoiding")
+            # Mendapatkan semua kemungkinan gerakan
             possible_moves = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1] if abs(dx) != abs(dy)]
-
+            # Memilih gerakan yang tidak ada pada self.avoid_positions
             valid_moves = [(dx, dy) for dx, dy in possible_moves if Position(current_position.y + dy, current_position.x + dx) not in self.avoid_positions ]
-            
+            # Memilih gerakan yang berada pada game board
             valid_moves = [(dx, dy) for dx, dy in valid_moves if current_position.y + dy >= 0 and current_position.y + dy <= 14 and current_position.x + dx >= 0 and current_position.x + dx <= 14]
-          
+            # Jika terdapat lebih dari 1 gerakan yang valid, maka bot akan memilih gerakan yang paling dekat dengan goal_position
             if len(valid_moves) > 1:
                 valid_moves = [(dx, dy) for dx, dy in valid_moves if not (dx == -delta_x and dy == -delta_y)]
                 distances = [abs(self.goal_position.x - (current_position.x + dx)) + abs(self.goal_position.y - (current_position.y + dy)) for dx, dy in valid_moves]
