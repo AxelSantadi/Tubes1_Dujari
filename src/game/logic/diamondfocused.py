@@ -1,4 +1,3 @@
-import random
 from typing import Optional
 
 from game.logic.base import BaseLogic
@@ -6,12 +5,15 @@ from game.models import GameObject, Board, Position
 from ..util import get_direction, position_equals, clamp
 import math
 
+def distance_to_goal(current, goal):
+    return abs(current.x - goal.x) + abs(current.y - goal.y)
+
 def best_and_closest(gameObj, current_position, props, sekon):
     bestPoint = 0
     minToBase = 9999
     
     #get distance to game objects
-    gameObj_with_distance = [(obj, abs(current_position.x - obj.position.x) + abs(current_position.y - obj.position.y)) for obj in gameObj]
+    gameObj_with_distance = [(obj, distance_to_goal(current_position,obj.position)) for obj in gameObj]
     #sort by distance
     gameObj_with_distance = sorted(gameObj_with_distance, key=lambda x: x[1])
     closest = gameObj_with_distance[0][0] #closest game object
@@ -34,23 +36,21 @@ def best_and_closest(gameObj, current_position, props, sekon):
 
         current_point += obj.properties.points if obj.type == "DiamondGameObject" else 0
         current_distance += min_distance
+
+        diamonds_only = sorted(diamonds_only, key=lambda dimon: distance_to_goal(dimon.position, obj.position))
         for diamond in diamonds_only:
             current_dimon_to_base = 0
             if diamond.position.x >= min_x and diamond.position.x <= max_x and diamond.position.y >= min_y and diamond.position.y <= max_y:
                 current_point += diamond.properties.points
-                current_distance += abs(obj.position.x - diamond.position.x) + abs(obj.position.y - diamond.position.y)
-                current_dimon_to_base = abs(diamond.position.x - props.base.x) + abs(diamond.position.y - props.base.y)
-            if current_dimon_to_base < dimon_to_base:
-                dimon_to_base = current_dimon_to_base
+                current_dimon_to_base = distance_to_goal(diamond.position, props.base)
+                if current_dimon_to_base < dimon_to_base:
+                    dimon_to_base = current_dimon_to_base
 
         if current_distance < sekon:
             if dimon_to_base < minToBase and bestPoint < current_point:
                 minToBase = dimon_to_base
                 bestPoint = current_point
                 closest = obj
-  
-    if position_equals(current_position, closest.position):
-        closest = gameObj_with_distance[1][0]
 
     return closest
 
@@ -62,23 +62,23 @@ class diamondfocused(BaseLogic):
     def next_move(self, board_bot: GameObject, board: Board):
         props = board_bot.properties
         current_position = board_bot.position
+        self.avoid_positions = []
         
         # Menyimpan posisi telporter dalam self.avoid_positions
         teleporter = [obj.position for obj in board.game_objects if obj.type == "TeleportGameObject"]
-        self.avoid_positions.append(teleporter)
+        self.avoid_positions.extend(teleporter)
 
         # Menghitung jarak dari bot ke base dan waktu tersisa
-        distance_to_base = abs(current_position.x - props.base.x) + abs(current_position.y - props.base.y)
+        distance_to_base = distance_to_goal(current_position, props.base)
         sekon = math.floor(props.milliseconds_left / 1000)
         print("Sekon: ", sekon)
         print("Distance to base: ", distance_to_base)
-        # Jika bot memiliki lebih dari 3 diamond atau jarak ke base sama dengan waktu tersisa, maka bot akan menuju ke base
-        if distance_to_base == sekon and not position_equals(current_position, props.base):
+        # Jika bot memiliki lebih dari 4 diamond atau jarak ke base sama dengan waktu tersisa, maka bot akan menuju ke base
+        if distance_to_base >= sekon and not position_equals(current_position, props.base):
             base = props.base
             self.goal_position = base
             print("go BACKKK")
-
-        elif props.diamonds > 3:
+        elif props.diamonds > 4:
             base = props.base
             self.goal_position = base
         else:
@@ -97,10 +97,12 @@ class diamondfocused(BaseLogic):
             self.goal_position.x,
             self.goal_position.y,
         )
+
         # Jika posisi yang akan dituju merupakan posisi yang harus dihindari, maka bot akan memilih posisi lain
         tempPosition = Position(current_position.y + delta_y, current_position.x + delta_x)
 
         if tempPosition in self.avoid_positions:
+            print(f"avoiding {tempPosition}")
             # Mendapatkan semua kemungkinan gerakan
             possible_moves = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1] if abs(dx) != abs(dy)]
             # Memilih gerakan yang tidak ada pada self.avoid_positions
@@ -110,7 +112,7 @@ class diamondfocused(BaseLogic):
             # Jika terdapat lebih dari 1 gerakan yang valid, maka bot akan memilih gerakan yang paling dekat dengan goal_position
             if len(valid_moves) > 1:
                 valid_moves = [(dx, dy) for dx, dy in valid_moves if not (dx == -delta_x and dy == -delta_y)]
-                distances = [abs(self.goal_position.x - (current_position.x + dx)) + abs(self.goal_position.y - (current_position.y + dy)) for dx, dy in valid_moves]
+                distances = [distance_to_goal(Position(current_position.y + dy, current_position.x + dx), self.goal_position) for dx, dy in valid_moves]
                 min_distance_index = distances.index(min(distances))
                 delta_x, delta_y = valid_moves[min_distance_index]
             else:

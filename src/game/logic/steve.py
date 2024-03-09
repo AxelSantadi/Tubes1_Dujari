@@ -161,7 +161,7 @@ class DiamondOnly(BaseLogic):
             other_bots = [bot for bot in board.bots if bot.id != id_bot]
             for bot in other_bots:
                 for obj in gameObj_normal:
-                    if distance_to_goal(bot.position, obj.position) <= 1:
+                    if math.sqrt((obj.position.x - bot.position.x)**2 + (obj.position.y - bot.position.y)**2) < 3:
                         gameObj_normal.remove(obj)
             
             # Menghapus diamond button jika score bot lebih kecil dari 7

@@ -74,10 +74,11 @@ class mixbanyakattack(BaseLogic):
         props = board_bot.properties
         current_position = board_bot.position
         bot_id = board_bot.id
+        self.avoid_positions = []
 
         # Mengambil semua objek yang merupakan TeleportGameObject dan simpan pada self.avoid_positions
         teleporter = [obj.position for obj in board.game_objects if obj.type == "TeleportGameObject"]
-        self.avoid_positions.append(teleporter)
+        self.avoid_positions.extend(teleporter)
 
         # Mengukur jarak antara posisi saat ini dengan posisi base dan waktu tersisa
         distance_to_base = abs(current_position.x - props.base.x) + abs(current_position.y - props.base.y)
@@ -85,12 +86,12 @@ class mixbanyakattack(BaseLogic):
         print("Sekon: ", sekon)
         print("Distance to base: ", distance_to_base)
         # Jika bot memiliki lebih dari 2 diamond atau jarak antara posisi saat ini dengan base sama dengan waktu tersisa
-        if distance_to_base == sekon and not position_equals(current_position, props.base):
+        if distance_to_base >= sekon and not position_equals(current_position, props.base):
             base = props.base
             self.goal_position = base
             print("go BACKKK")
 
-        elif props.diamonds > 2:
+        elif props.diamonds > 4:
             base = props.base
             self.goal_position = base
         else:

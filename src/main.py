@@ -7,6 +7,7 @@ from game.board_handler import BoardHandler
 from game.bot_handler import BotHandler
 from game.logic.steve import DiamondOnly
 from game.logic.asep import mixbanyakattack
+from game.logic.pulang import Pulang
 from game.logic.diamondfocused import diamondfocused
 from game.util import *
 from game.logic.base import BaseLogic
@@ -18,6 +19,7 @@ CONTROLLERS = {
     "Dimon": diamondfocused,
     "Steve": DiamondOnly,
     "Asep" : mixbanyakattack,
+    "Pulang": Pulang,
 }
 
 ###############################################################################
