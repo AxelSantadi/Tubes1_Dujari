@@ -21,6 +21,10 @@ cd src
 ```
 python main.py --logic {logic} --email={email@example.com} --name={insert name} --password={password} --team {insert team}
 ```
+or the following code
+```
+./run-bots.bat
+```
 
 ## Developers
 > "DUa JAwa dan RIau"
@@ -28,5 +32,5 @@ python main.py --logic {logic} --email={email@example.com} --name={insert name} 
 |   NIM    |          Nama          |         Hobi         |
 | :------: | :--------------------: | :------------------: |
 | 13522121 |   Jonathan Emmanuel Saragih |      Muay Thai       |
-| 13522141 |  Ahmad Thoriq Saputra  | makan geprek bebas |
-| 13522155 | Axel Santadi Warih |   Sawer Waifu    |
+| 13522141 |  Ahmad Thoriq Saputra  | Makan Geprek Bebas |
+| 13522155 | Axel Santadi Warih |   Sawerin Suisei    |
